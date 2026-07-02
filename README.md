@@ -14,7 +14,7 @@ _TBD — diagram once pipeline is built_
 - Warehouse: BigQuery
 - Transformations: dbt
 - Orchestration: TBD (Kestra or Prefect)
-- Dashboard: Streamlit
+- Dashboard: TBD
 - IaC: Terraform
 
 ## Project Structure
