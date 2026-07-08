@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "pet-food-analytics"
 version = "0.1.0"
@@ -5,6 +9,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "duckdb>=1.5.4",
     "pandas>=3.0.3",
     "requests>=2.34.2",
 ]
@@ -12,4 +17,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "jupyter>=1.1.1",
+    "pytest>=9.1.1",
+    "pytest-mock>=3.15.1",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
