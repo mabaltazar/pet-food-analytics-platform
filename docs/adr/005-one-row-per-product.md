@@ -1,4 +1,4 @@
-# ADR 0006: Keep Silver Layer at One-Row-Per-Product Grain
+# ADR 0005: Keep Silver Layer at One-Row-Per-Product Grain
 
 ## Status
 Accepted

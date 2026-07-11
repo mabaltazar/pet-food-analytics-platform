@@ -43,7 +43,7 @@ analytically meaningful to carry into silver:
   strings (e.g. "en:france,en:italy,en:spain") for products sold in
   multiple countries. Left as one-row-per-product in silver; unnesting
   into one-row-per-product-country happens only in the dbt mart that
-  powers the dashboard's categorical tile (see ADR 0006).
+  powers the dashboard's categorical tile (see ADR 0005).
 - `brands`, `categories_tags` / `categories` / `main_category` — moderate
   sparsity (55-69% null) and high cardinality (700-2,000+ distinct
   values). Usable, but any dashboard/mart use requires top-N grouping
@@ -65,16 +65,24 @@ analytically meaningful to carry into silver:
    them as "populated" in downstream data quality tests.
 6. Leave `countries_tags`, `brands`, `categories_tags` un-split in
    silver; defer unnesting/top-N grouping to the dbt mart layer that
-   consumes them (see ADR 0006: keep silver at one-row-per-product).
+   consumes them (see ADR 0005: keep silver at one-row-per-product).
+7. Normalize `created_datetime` and `last_modified_datetime` to UTC
+   explicitly (`AT TIME ZONE 'UTC'`), since TIMESTAMP WITH TIME ZONE
+   values otherwise render in whichever local timezone the reading
+   process/machine defaults to — confirmed during development, where
+   the same value displayed with an Asia/Manila offset locally despite
+   being stored correctly. Left un-normalized, this ambiguity would
+   propagate into BigQuery and the dashboard.
 
 ## Success Criteria
-- Output row count matches input row count minus only rows dropped by
-  rule 1 and rule 4 (rule 2 currently removes 0 rows; rule 3 removes
-  columns, not rows).
-- No duplicate `code` values in output.
-- No columns from the "Columns to drop" list present in the output schema.
+- Output row count: 12,167 (from 15,145 input rows; 2,978 dropped by
+  rule 4, rules 1/2 confirmed no-ops on current snapshot).
+- No duplicate `code` values in output — verified via test fixture
+  with an intentional duplicate.
 - All rows have non-null `code` and at least one of `product_name` /
-  `generic_name`.
+  `generic_name` — verified via test fixture with intentional null cases.
+- Timestamps stored and readable as UTC, not ambiguous local-time
+  representations.
 
 ## Open items
 - Confirm and document the cause of `completeness` values exceeding 1.0

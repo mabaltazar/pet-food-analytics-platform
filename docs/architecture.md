@@ -67,3 +67,4 @@ See `docs/adr/` for the full reasoning behind each major choice:
 - [003 — BigQuery over DuckDB as warehouse](adr/003-bigquery-over-duckdb.md)
 - [004 — DuckDB for local profiling](adr/004-duckdb-for-data-profiling.md)
 - [005 — Silver Layer at one row per product](adr/005-one-row-per-product.md)
+- [006 — Bronze/Silver Layer definition](adr/006-bronze-silver-definition.md)
