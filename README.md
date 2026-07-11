@@ -3,10 +3,16 @@
 ## Status: 🚧 In Progress
 
 ## Overview
-_TBD — one-paragraph problem statement_
+An end-to-end batch data pipeline that ingests the Open Pet Food Facts
+dataset, processes it through a layered data lake, loads it into a cloud
+data warehouse, transforms it into analytics-ready tables, and serves
+the results through a dashboard.
+
+Current snapshot: 15,145 products, 210 source columns (profiled and
+reduced to a smaller analytical schema — see `docs/specs/silver_transform.md`).
 
 ## Architecture
-_TBD — diagram once pipeline is built_
+See `docs/architecture.md` for the full pipeline diagram and layer breakdown.
 
 ## Tech Stack
 - Language: Python (uv)
@@ -18,18 +24,38 @@ _TBD — diagram once pipeline is built_
 - IaC: Terraform
 
 ## Project Structure
-_TBD_
+data/            # raw / bronze / silver / gold (gitignored, dated snapshots)
+src/
+ingestion/     # download.py
+processing/    # profile.py
+dbt/
+dashboard/
+tests/
+docs/
+adr/           # architecture decision records
+specs/         # transformation specs (rules, reasoning, success criteria)
+architecture.md
+terraform/
 
 ## Setup & Reproduction
 _TBD_
 
 ## Progress Checklist
 - [x] Repo initialized
-- [ ] Raw data ingestion
-- [ ] Data profiling
-- [ ] Bronze/Silver processing
+- [x] Raw data ingestion (`download.py`, tested)
+- [x] Data profiling (`profile.py`, run against real data)
+- [x] Silver transformation spec finalized
+- [ ] Silver transformation script
 - [ ] BigQuery warehouse + dbt models
-- [ ] Orchestration
-- [ ] Dashboard
+- [ ] Orchestration (Kestra)
+- [ ] Dashboard (Streamlit)
 - [ ] Terraform IaC
-- [ ] Tests + CI
+- [ ] CI (GitHub Actions)
+
+## Key Design Decisions
+See `docs/adr/` for full reasoning behind each major choice:
+- [001 — Batch over streaming](docs/adr/0001-batch-over-streaming.md)
+- [002 — Cloud (GCP) over local-first](docs/adr/0002-cloud-over-local.md)
+- [003 — BigQuery over DuckDB as warehouse](docs/adr/0003-bigquery-over-duckdb.md)
+- [004 — DuckDB for local profiling](docs/adr/0004-duckdb-for-profiling.md)
+- [005 — Silver layer grain: one row per product](docs/adr/0006-silver-grain.md)
