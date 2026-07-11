@@ -62,7 +62,8 @@ A Streamlit app reads from the BigQuery marts layer and presents:
 ## Key Design Decisions
 
 See `docs/adr/` for the full reasoning behind each major choice:
-- [0001 — Batch over streaming](adr/001-batch-over-streaming.md)
-- [0002 — Cloud (GCP) over local-first](adr/002-cloud-over-local.md)
-- [0003 — BigQuery over DuckDB as warehouse](adr/003-bigquery-over-duckdb.md)
-- [0004 — DuckDB for local profiling](adr/004-duckdb-for-data-profiling.md)
+- [001 — Batch over streaming](adr/001-batch-over-streaming.md)
+- [002 — Cloud (GCP) over local-first](adr/002-cloud-over-local.md)
+- [003 — BigQuery over DuckDB as warehouse](adr/003-bigquery-over-duckdb.md)
+- [004 — DuckDB for local profiling](adr/004-duckdb-for-data-profiling.md)
+- [005 — Silver Layer at one row per product](adr/005-one-row-per-product.md)
