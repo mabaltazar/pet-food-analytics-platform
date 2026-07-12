@@ -2,6 +2,7 @@
 # coding: utf-8
 
 from __future__ import annotations
+from unittest.mock import patch, MagicMock
 
 import duckdb
 
@@ -33,6 +34,59 @@ def _write_sample_bronze(path: Path) -> None:
     """)
     con.close()
 
+
+def test_silver_layer_builds_gcs_path_and_calls_configure_gcs(tmp_path: Path) -> None:
+    fake_con=MagicMock()
+
+    with patch("src.processing.silver_layer.duckdb.connect", return_value=fake_con) as mock_connect, \
+            patch("src.processing.silver_layer.configure_gcs") as mock_configure_gcs:
+        
+        dest_path=silver_layer(
+            bronze_path="gs://fake-bucket/bronze/2026-07-01/products.parquet",
+            dest_dir="gs://fake-bucket/silver",
+            run_date=date(2026, 7, 1),
+            gcs=True
+        )
+    
+    assert dest_path == "gs://fake-bucket/silver/2026-07-01/products.parquet"
+    
+    mock_configure_gcs.assert_called_once_with(fake_con)
+    executed_sql=fake_con.execute.call_args[0][0]
+    assert dest_path in executed_sql
+
+    fake_con.close.assert_called_once()
+
+def test_silver_layer_gcs_dest_dir_trailing_slash(tmp_path: Path) -> None:
+    fake_con=MagicMock()
+
+    with patch("src.processing.silver_layer.duckdb.connect", return_value=fake_con), \
+            patch("src.processing.silver_layer.configure_gcs"):
+        
+        dest_path=silver_layer(
+            bronze_path="gs://fake-bucket/bronze/2026-07-01/products.parquet",
+            dest_dir="gs://fake-bucket/silver/",
+            run_date=date(2026, 7, 1),
+            gcs=True
+        )
+
+    assert dest_path == "gs://fake-bucket/silver/2026-07-01/products.parquet"
+    assert "//2026" not in dest_path
+
+def test_silver_layer_gcs_true_skips_local_mkdir(tmp_path: Path) -> None:
+    fake_con=MagicMock()
+
+    with patch("src.processing.silver_layer.duckdb.connect", return_value=fake_con), \
+            patch("src.processing.silver_layer.configure_gcs"), \
+            patch("pathlib.Path.mkdir") as mock_mkdir:
+
+        silver_layer(
+            bronze_path="gs://fake-bucket/bronze/2026-07-01/products.parquet",
+            dest_dir="gs://fake-bucket/silver/",
+            run_date=date(2026, 7, 1),
+            gcs=True
+        )
+
+    mock_mkdir.assert_not_called()
 
 def test_silver_layer_drops_null_code_rows(tmp_path: Path) -> None:
     bronze_path=tmp_path / "test_bronze.parquet"
@@ -99,3 +153,5 @@ def test_silver_layer_output_row_count(tmp_path: Path) -> None:
     result=duckdb.sql(f"SELECT COUNT(*) FROM '{dest_path}'").fetchone()
 
     assert result == (1, )
+
+
