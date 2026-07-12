@@ -221,3 +221,8 @@ __marimo__/
 data/raw/
 data/bronze
 data/silver
+
+terraform.tfvars
+.terraform/
+*.tfstate
+*.tfstate.backup
