@@ -1,4 +1,5 @@
 from __future__ import annotations
+from unittest.mock import patch, MagicMock
 
 import duckdb
 
@@ -14,18 +15,35 @@ def _write_sample_csv(path: Path) -> None:
         "0002\tProduct B\t0.8\n"
     )
 
+def test_bronze_layer_builds_gcs_path_and_calls_configure_gcs(tmp_path: Path) -> None:
+    fake_con=MagicMock()
+
+    with patch("src.processing.bronze_layer.duckdb.connect", return_value=fake_con), \
+            patch("src.processing.bronze_layer.configure_gcs") as mock_configure_gcs:
+
+        dest_path=bronze_layer(
+            csv_path="gs://fake-bucket/raw/2026-07-01/products.csv",
+            dest_dir="gs://fake-bucket/bronze",
+            run_date=date(2026, 7, 1),
+            gcs=True
+        )
+
+    assert dest_path == "gs://fake-bucket/bronze/2026-07-01/products.parquet"
+    mock_configure_gcs.assert_called_once_with(fake_con)
+    fake_con.close.assert_called_once()
+
 def test_bronze_layer_preserve_row_and_column_count(tmp_path: Path) -> None:
     csv_path=tmp_path / "products.csv"
     _write_sample_csv(csv_path)
 
     dest_path=bronze_layer(
-        csv_path=csv_path, 
-        dest_dir=tmp_path / "bronze", 
+        csv_path=str(csv_path), 
+        dest_dir=str(tmp_path / "bronze"), 
         run_date=date(2026, 7, 1)
     )
 
-    assert dest_path.exists()
-    assert dest_path == tmp_path / "bronze" / "2026-07-01" / "products.parquet"
+    assert Path(dest_path).exists()
+    assert dest_path == str(tmp_path / "bronze" / "2026-07-01" / "products.parquet")
 
     result=duckdb.sql(f"SELECT * FROM read_parquet('{dest_path}')").fetchall()
     assert len(result) == 2
@@ -39,8 +57,8 @@ def test_bronze_layer_preserves_all_values(tmp_path: Path) -> None:
     _write_sample_csv(csv_path)
 
     dest_path=bronze_layer(
-        csv_path=csv_path, 
-        dest_dir=tmp_path / "bronze", 
+        csv_path=str(csv_path), 
+        dest_dir=str(tmp_path / "bronze"), 
         run_date=date(2026, 7, 1)
     )
 
