@@ -36,15 +36,31 @@ See `docs/architecture.md` for the full pipeline diagram and layer breakdown.
 - data_dictionary.md
 
 ## Setup & Reproduction
-_TBD_
+
+Requires `.env` with `GCS_ACCESS_KEY_ID` / `GCS_SECRET_ACCESS_KEY`
+(HMAC keys for GCS's S3-interoperability mode — see ADR 0008).
+
+Each pipeline stage runs standalone, against local disk by default:
+
+```bash
+uv run python -m src.ingestion.download
+uv run python -m src.processing.bronze_layer data/raw/$(date +%F)/products.csv.gz
+uv run python -m src.processing.silver_layer data/bronze/$(date +%F)/products.parquet
+```
+
+Pass `--dest-dir gs://<bucket>/<layer>` and `--gcs` to write to GCS instead:
+
+```bash
+uv run python -m src.ingestion.download --dest-dir gs://pet-food-analytics-bucket/raw --gcs
+```
 
 ## Progress Checklist
 - [x] Repo initialized
-- [x] Raw data ingestion (`download.py`, tested)
+- [x] Raw data ingestion (`download.py`, tested, supports local + GCS)
 - [x] Data profiling (`profile.py`, run against real data)
-- [x] Bronze layer (`bronze_layer.py`, tested — format conversion, all columns preserved)
-- [x] Silver layer (`silver_layer.py`, tested — column selection, null filtering, dedup, UTC normalization)
-- [ ] Terraform: GCS bucket + BigQuery datasets
+- [x] Bronze layer (`bronze_layer.py`, tested — format conversion, all columns preserved, supports local + GCS)
+- [x] Silver layer (`silver_layer.py`, tested — column selection, null filtering, dedup, UTC normalization, supports local + GCS)
+- [x] Terraform: GCS bucket + BigQuery datasets
 - [ ] Load silver -> BigQuery
 - [ ] dbt staging + marts (incl. countries_tags unnesting, date truncation)
 - [ ] Orchestration (Kestra)
@@ -59,3 +75,4 @@ See `docs/adr/` for full reasoning behind each major choice:
 - [004 — DuckDB for local profiling](docs/adr/004-duckdb-for-profiling.md)
 - [005 — Silver layer grain: one row per product](docs/adr/005-one-row-per-product.md)
 - [006 — Bronze/Silver Layer definition](docs/adr/006-bronze-silver-definition.md)
+- [007 — Hybrid local/GCS destination pattern](docs/adr/007-hybrid-local-gcs-destination.md)
